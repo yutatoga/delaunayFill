@@ -1,6 +1,28 @@
 #include "ofApp.h"
 
-void setRandomColorToTriangleMesh(ofxDelaunay *delaunay){
+void setRandomColorToTriangle(ofxDelaunay *delaunay, ofMesh *mesh){
+    mesh->clear();
+    ofMesh triangleMesh = delaunay->triangleMesh;
+    for (int i = 0; i < delaunay->getNumTriangles(); i++) {
+        // get indices
+        int index1 = triangleMesh.getIndex(i*3);
+        int index2 = triangleMesh.getIndex(i*3+1);
+        int index3 = triangleMesh.getIndex(i*3+2);
+
+        // add vertices
+        mesh->addVertex(triangleMesh.getVertex(index1));
+        mesh->addVertex(triangleMesh.getVertex(index2));
+        mesh->addVertex(triangleMesh.getVertex(index3));
+        
+        // add colors
+        ofColor randomColor(ofRandom(255), ofRandom(255), ofRandom(255), 255);
+        for (int i = 0; i < 3; i++) {
+            mesh->addColor(randomColor);
+        }
+    }
+}
+
+void setRandomColorToEachVertex(ofxDelaunay *delaunay, ofMesh *mesh){
     delaunay->triangleMesh.clearColors();
     for (int i = 0; i < delaunay->getNumTriangles(); i ++){
         for (int j = 0; j < 3; j++) {
@@ -27,6 +49,7 @@ void ofApp::setup(){
     
     // listener
     enableFillRandomColor.addListener(this, &ofApp::enableFillRandomColorChanged);
+    enableFillRandomColorTriangle.addListener(this, &ofApp::enableFillRandomColorTriangleChanged);
     
     // gui
     panel.setup();
@@ -35,16 +58,26 @@ void ofApp::setup(){
     panel.add(showDelaunayVertices.set("showDelaunayVertices", true));
     panel.add(showDelaunayCenter.set("showDelaunayCenter", true));
     panel.add(enableFillRandomColor.set("enableFillRandomColor", false));
-    
+    panel.add(enableFillRandomColorTriangle.set("enableFillRandomColorTriangle", false));
         
     showGui = true;
 }
 
 void ofApp::enableFillRandomColorChanged(bool &enable){
     if (enable) {
-        setRandomColorToTriangleMesh(&triangulation);
+        enableFillRandomColorTriangle = false;
+        setRandomColorToEachVertex(&triangulation, &mesh);
     }else {
         triangulation.triangleMesh.clearColors();
+    }
+}
+
+void ofApp::enableFillRandomColorTriangleChanged(bool &enable){
+    if (enable) {
+        enableFillRandomColor = false;
+        setRandomColorToTriangle(&triangulation, &mesh);
+    }else {
+        mesh.clear();
     }
 }
 
@@ -56,11 +89,16 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     // draw the background of triangles
-    if (showDelaunayBackground) {
-        ofSetColor(0, 0, 127);
-        ofFill();
-        triangulation.draw();
-        ofSetColor(255);
+    if (enableFillRandomColorTriangle) {
+        // draw mesh
+        mesh.draw();
+    } else {
+        if (showDelaunayBackground) {
+            ofSetColor(0, 0, 127);
+            ofFill();
+            triangulation.draw();
+            ofSetColor(255);
+        }
     }
     
     // draw wire frame of triangles
@@ -101,6 +139,8 @@ void ofApp::draw(){
         }
         ofSetColor(255);
     }
+    
+
     
     // gui
     if (showGui) panel.draw();
@@ -143,9 +183,8 @@ void ofApp::mousePressed(int x, int y, int button){
     // delaunay
     triangulation.addPoint(ofPoint(x, y));
     triangulation.triangulate();
-    if (enableFillRandomColor) {
-        setRandomColorToTriangleMesh(&triangulation);
-    }
+    if (enableFillRandomColor) setRandomColorToEachVertex(&triangulation, &mesh);
+    if (enableFillRandomColorTriangle) setRandomColorToTriangle(&triangulation, &mesh);
 }
 
 //--------------------------------------------------------------

@@ -26,9 +26,14 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		
     void enableFillRandomColorChanged(bool &enable);
+    void enableFillRandomColorTriangleChanged(bool &enable);
+    
     
     // delaunay
     ofxDelaunay triangulation;
+    
+    // mesh
+    ofMesh mesh;
     
     // gui
     ofxPanel panel;
@@ -37,6 +42,7 @@ class ofApp : public ofBaseApp{
     ofParameter<bool> showDelaunayVertices;
     ofParameter<bool> showDelaunayCenter;
     ofParameter<bool> enableFillRandomColor;
+    ofParameter<bool> enableFillRandomColorTriangle;
     
     bool showGui;
 };

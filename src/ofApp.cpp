@@ -52,13 +52,38 @@ void setImageColorToEachVertex(ofxDelaunay *delaunay, ofMesh *mesh, ofImage *ima
     }
 }
 
+void setVideoGrabberColorToEachVertex(ofxDelaunay *delaunay, ofMesh *mesh, ofVideoGrabber *videoGrabber){
+    mesh->clear();
+    ofMesh triangleMesh = delaunay->triangleMesh;
+    // ofImage from ofVideoGrabber
+    ofImage image;
+    image.setFromPixels(videoGrabber->getPixels());
+    image.mirror(false, true);
+    for (int i = 0; i < delaunay->getNumTriangles(); i++) {
+        // get indices
+        int index1 = triangleMesh.getIndex(i*3);
+        int index2 = triangleMesh.getIndex(i*3+1);
+        int index3 = triangleMesh.getIndex(i*3+2);
+        
+        // add vertices
+        mesh->addVertex(triangleMesh.getVertex(index1));
+        mesh->addVertex(triangleMesh.getVertex(index2));
+        mesh->addVertex(triangleMesh.getVertex(index3));
+        
+        // add colors
+        mesh->addColor(image.getColor(triangleMesh.getVertex(index1).x, triangleMesh.getVertex(index1).y));
+        mesh->addColor(image.getColor(triangleMesh.getVertex(index2).x, triangleMesh.getVertex(index2).y));
+        mesh->addColor(image.getColor(triangleMesh.getVertex(index3).x, triangleMesh.getVertex(index3).y));
+    }
+}
+
 //--------------------------------------------------------------
 void ofApp::setup(){
     ofEnableSmoothing();
     ofBackground(0);
     
-    // add random 5 points
-    for (int i = 0; i < 5000; i++) {
+    // add some(INITIAL_POINT_NUMBER) random points
+    for (int i = 0; i < INITIAL_POINT_NUMBER; i++) {
         ofPoint instantPoint(ofRandom(0, ofGetWidth()), ofRandom(0, ofGetHeight()));
         
         // delaunay
@@ -72,10 +97,16 @@ void ofApp::setup(){
     image.load("Lenna.png");
     image.resize(ofGetWidth(), ofGetHeight());
     
+    // videoGrabber
+    videoGrabber.setDeviceID(0);
+    videoGrabber.setDesiredFrameRate(60);
+    videoGrabber.initGrabber(ofGetWidth(), ofGetHeight());
+    
     // listener
     enableFillRandomColor.addListener(this, &ofApp::enableFillRandomColorChanged);
     enableFillRandomColorTriangle.addListener(this, &ofApp::enableFillRandomColorTriangleChanged);
     enableFillImageColor.addListener(this, &ofApp::enableFillImageColorChanged);
+    enableFillVideoGrabberColor.addListener(this, &ofApp::enableFillVideoGrabberColorChanged);
     
     // gui
     panel.setup();
@@ -86,7 +117,8 @@ void ofApp::setup(){
     panel.add(enableFillRandomColor.set("enableFillRandomColor", false));
     panel.add(enableFillRandomColorTriangle.set("enableFillRandomColorTriangle", false));
     panel.add(enableFillImageColor.set("enableFillImageColor", false));
-        
+    panel.add(enableFillVideoGrabberColor.set("enableFillVideoGrabberColor", false));
+    
     showGui = true;
 }
 
@@ -95,6 +127,7 @@ void ofApp::enableFillRandomColorChanged(bool &enable){
         // disable other draw styles
         enableFillRandomColorTriangle = false;
         enableFillImageColor = false;
+        enableFillVideoGrabberColor = false;
         
         setRandomColorToEachVertex(&triangulation);
     }else {
@@ -107,6 +140,7 @@ void ofApp::enableFillRandomColorTriangleChanged(bool &enable){
         // disable other draw styles
         enableFillRandomColor = false;
         enableFillImageColor = false;
+        enableFillVideoGrabberColor = false;
         
         setRandomColorToTriangle(&triangulation, &mesh);
     }else {
@@ -119,6 +153,7 @@ void ofApp::enableFillImageColorChanged(bool &enable){
         // disable other draw styles
         enableFillRandomColorTriangle = false;
         enableFillRandomColor = false;
+        enableFillVideoGrabberColor = false;
 
         setImageColorToEachVertex(&triangulation, &mesh, &image);
     } else {
@@ -126,15 +161,32 @@ void ofApp::enableFillImageColorChanged(bool &enable){
     }
 }
 
+void ofApp::enableFillVideoGrabberColorChanged(bool &enable){
+    if (enable) {
+        // disable other draw styles
+        enableFillRandomColor = false;
+        enableFillRandomColorTriangle = false;
+        enableFillImageColor = false;
+        
+        setVideoGrabberColorToEachVertex(&triangulation, &mesh, &videoGrabber);
+    } else {
+        mesh.clear();
+    }
+}
+
 //--------------------------------------------------------------
 void ofApp::update(){
-
+    // debug
+    ofSetWindowTitle(ofToString(ofGetFrameRate(), 0));
+    
+    // update videograbber
+    videoGrabber.update();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     // draw the background of triangles
-    if (enableFillRandomColorTriangle || enableFillImageColor) {
+    if (enableFillRandomColorTriangle || enableFillImageColor || enableFillVideoGrabberColor) {
         // draw mesh
         mesh.draw();
     } else {
@@ -230,6 +282,7 @@ void ofApp::mousePressed(int x, int y, int button){
     if (enableFillRandomColor) setRandomColorToEachVertex(&triangulation);
     if (enableFillRandomColorTriangle) setRandomColorToTriangle(&triangulation, &mesh);
     if (enableFillImageColor) setImageColorToEachVertex(&triangulation, &mesh, &image);
+    if (enableFillVideoGrabberColor) setVideoGrabberColorToEachVertex(&triangulation, &mesh, &videoGrabber);
 }
 
 //--------------------------------------------------------------

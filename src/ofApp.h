@@ -31,6 +31,7 @@ class ofApp : public ofBaseApp{
     void enableFillRandomColorChanged(bool &enable);
     void enableFillRandomColorTriangleChanged(bool &enable);
     void enableFillImageColorChanged(bool &enable);
+    void enableFillImageColorTriangleChanged(bool &enable);
     void enableFillVideoGrabberColorChanged(bool &enable);
     void enableFillVideoGrabberColorTriangleChanged(bool &enable);
     
@@ -56,6 +57,7 @@ class ofApp : public ofBaseApp{
     ofParameter<bool> enableFillRandomColor;
     ofParameter<bool> enableFillRandomColorTriangle;
     ofParameter<bool> enableFillImageColor;
+    ofParameter<bool> enableFillImageColorTriangle;
     ofParameter<bool> enableFillVideoGrabberColor;
     ofParameter<bool> enableFillVideoGrabberColorTriangle;
     

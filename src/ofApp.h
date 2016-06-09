@@ -1,7 +1,7 @@
 #pragma once
 
 #define INITIAL_POINT_NUMBER 5000
-
+#define RADIUS_CENTER_OF_MESH 5
 
 #include "ofMain.h"
 
@@ -32,6 +32,7 @@ class ofApp : public ofBaseApp{
     void enableFillRandomColorTriangleChanged(bool &enable);
     void enableFillImageColorChanged(bool &enable);
     void enableFillVideoGrabberColorChanged(bool &enable);
+    void enableFillVideoGrabberColorTriangleChanged(bool &enable);
     
     // delaunay
     ofxDelaunay triangulation;
@@ -56,6 +57,7 @@ class ofApp : public ofBaseApp{
     ofParameter<bool> enableFillRandomColorTriangle;
     ofParameter<bool> enableFillImageColor;
     ofParameter<bool> enableFillVideoGrabberColor;
+    ofParameter<bool> enableFillVideoGrabberColorTriangle;
     
     bool showGui;
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#define INITIAL_POINT_NUMBER 5000
+#define INITIAL_POINT_NUMBER 200
 #define RADIUS_CENTER_OF_MESH 5
 
 #include "ofMain.h"
@@ -8,6 +8,7 @@
 // addons
 #include "ofxDelaunay.h"
 #include "ofxGui.h"
+#include "ofxCv.h"
 
 class ofApp : public ofBaseApp{
 
@@ -27,13 +28,29 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-		
+	
+    
+    // listener methods
+    // - edit points
+    void clearAllPointsChanged();
+    void addRandomPointsChanged();
+    // -- canny
+    void addCannyPointsChanged();
+    void cannyThreshold1Changed(float &threshold1);
+    void cannyThreshold2Changed(float &threshold2);
+    // - drawing style
+    void enableCannyChanged(bool &enable);
     void enableFillRandomColorChanged(bool &enable);
     void enableFillRandomColorTriangleChanged(bool &enable);
     void enableFillImageColorChanged(bool &enable);
     void enableFillImageColorTriangleChanged(bool &enable);
     void enableFillVideoGrabberColorChanged(bool &enable);
     void enableFillVideoGrabberColorTriangleChanged(bool &enable);
+    void enableImageChanged(bool &enable);
+    void enableVideoGrabberChanged(bool &enable);
+    
+    void updateTriangles();
+    void updateCanny();
     
     // delaunay
     ofxDelaunay triangulation;
@@ -43,9 +60,11 @@ class ofApp : public ofBaseApp{
     
     // image
     ofImage image;
+    ofImage grayImage, grayBlurImage, edgeImage;
     
     // videoGrabber(webcam)
     ofVideoGrabber videoGrabber;
+    ofImage flippedImageFromVideoGrabber;
     
     // gui
     ofxPanel panel;
@@ -53,13 +72,23 @@ class ofApp : public ofBaseApp{
     ofParameter<bool> showDelaunayWireframe;
     ofParameter<bool> showDelaunayVertices;
     ofParameter<bool> showDelaunayCenter;
-    // draw style
+    ofParameter<bool> showCannyDebugView;
+    // - edit points;
+    ofxButton clearAllPoints;
+    ofxButton addRandomPoints;
+    ofxButton addCannyPoints;
+    ofParameter<float> cannyThreshold1;
+    ofParameter<float> cannyThreshold2;
+    // - draw style
     ofParameter<bool> enableFillRandomColor;
     ofParameter<bool> enableFillRandomColorTriangle;
     ofParameter<bool> enableFillImageColor;
     ofParameter<bool> enableFillImageColorTriangle;
     ofParameter<bool> enableFillVideoGrabberColor;
     ofParameter<bool> enableFillVideoGrabberColorTriangle;
+
+    ofParameter<bool> enableImage;
+    ofParameter<bool> enableVideoGrabber;
     
     bool showGui;
 };

@@ -48,6 +48,7 @@ class ofApp : public ofBaseApp{
     void enableFillVideoGrabberColorTriangleChanged(bool &enable);
     void enableImageChanged(bool &enable);
     void enableVideoGrabberChanged(bool &enable);
+    void enableUpdateCannyForVideoGrabberChanged(bool &enable);
     
     void updateTriangles();
     void updateCanny();
@@ -89,6 +90,7 @@ class ofApp : public ofBaseApp{
 
     ofParameter<bool> enableImage;
     ofParameter<bool> enableVideoGrabber;
+    ofParameter<bool> enableUpdateCannyForVideoGrabber;
     
     bool showGui;
 };

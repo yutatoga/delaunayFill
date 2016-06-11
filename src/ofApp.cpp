@@ -198,6 +198,7 @@ void ofApp::setup(){
     // - video grabber
     enableImage.addListener(this, &ofApp::enableImageChanged);
     enableVideoGrabber.addListener(this, &ofApp::enableVideoGrabberChanged);
+    enableUpdateCannyForVideoGrabber.addListener(this, &ofApp::enableUpdateCannyForVideoGrabberChanged);
     // - drawing style
     enableFillRandomColor.addListener(this, &ofApp::enableFillRandomColorChanged);
     enableFillRandomColorTriangle.addListener(this, &ofApp::enableFillRandomColorTriangleChanged);
@@ -219,8 +220,8 @@ void ofApp::setup(){
     panel.add(addRandomPoints.setup("addRandomPoints"));
     // -- canny
     panel.add(addCannyPoints.setup("addCannyPoints"));
-    panel.add(cannyThreshold1.set("cannyThreshold1", 50, 0, 256));
-    panel.add(cannyThreshold2.set("cannyThreshold1", 200, 0, 256));
+    panel.add(cannyThreshold1.set("cannyThreshold1", 0, 0, 256));
+    panel.add(cannyThreshold2.set("cannyThreshold1", 30, 0, 256));
     // - select dawing style
     panel.add(enableFillRandomColor.set("enableFillRandomColor", false));
     panel.add(enableFillRandomColorTriangle.set("enableFillRandomColorTriangle", false));
@@ -230,6 +231,7 @@ void ofApp::setup(){
     panel.add(enableFillVideoGrabberColorTriangle.set("enableFillVideoGrabberColorTriangle", false));
     panel.add(enableImage.set("enableImage", true));
     panel.add(enableVideoGrabber.set("enableVideoGrabber", false));
+    panel.add(enableUpdateCannyForVideoGrabber.set("enableRealtimeVideoGrabber", false));
     
     showGui = true;
 }
@@ -350,6 +352,7 @@ void ofApp::enableFillImageColorTriangleChanged(bool &enable){
 
 void ofApp::enableFillVideoGrabberColorChanged(bool &enable){
     if (enable) {
+        if (!enableVideoGrabber) enableVideoGrabber = true;
         // disable other draw styles
         enableFillRandomColor = false;
         enableFillRandomColorTriangle = false;
@@ -365,6 +368,7 @@ void ofApp::enableFillVideoGrabberColorChanged(bool &enable){
 
 void ofApp::enableFillVideoGrabberColorTriangleChanged(bool &enable){
     if (enable) {
+        if (!enableVideoGrabber) enableVideoGrabber = true;
         // disable other draw styles
         enableFillRandomColor = false;
         enableFillRandomColorTriangle = false;
@@ -411,6 +415,13 @@ void ofApp::enableVideoGrabberChanged(bool &enable){
          enableImage = true;
     }
 }
+
+void ofApp::enableUpdateCannyForVideoGrabberChanged(bool &enable){
+    if (enable) {
+        if (!enableVideoGrabber) enableVideoGrabber = true;
+    }
+}
+
 //--------------------------------------------------------------
 void ofApp::update(){
     // debug
@@ -423,7 +434,14 @@ void ofApp::update(){
         ofxCv::copy(videoGrabber, imageFromVideoGrabber);
         ofxCv::flip(imageFromVideoGrabber, flippedImageFromVideoGrabber, 1);
         flippedImageFromVideoGrabber.update();
-        updateCanny();
+        if (enableUpdateCannyForVideoGrabber) {
+            // reset all points
+            clearAllPointsChanged();
+            // add canny points
+            addCannyPointsChanged();
+        } else {
+            updateCanny();
+        }
     }
 }
 

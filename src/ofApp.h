@@ -36,6 +36,7 @@ class ofApp : public ofBaseApp{
     void addRandomPointsChanged();
     // -- canny
     void addCannyPointsChanged();
+    void cannyPointsDensityChanged(int &cannyPointsDensity);
     void cannyThreshold1Changed(float &threshold1);
     void cannyThreshold2Changed(float &threshold2);
     // - drawing style
@@ -77,7 +78,11 @@ class ofApp : public ofBaseApp{
     // - edit points;
     ofxButton clearAllPoints;
     ofxButton addRandomPoints;
+    // -- canny
+    int addCannyPointsStyle;
+    ofxLabel addCannyPointsStyleLabel;
     ofxButton addCannyPoints;
+    ofParameter<int> cannyPointsDensity;
     ofParameter<float> cannyThreshold1;
     ofParameter<float> cannyThreshold2;
     // - draw style

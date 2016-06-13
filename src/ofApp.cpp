@@ -193,6 +193,7 @@ void ofApp::setup(){
     addRandomPoints.addListener(this, &ofApp::addRandomPointsChanged);
     // -- canny
     addCannyPoints.addListener(this, &ofApp::addCannyPointsChanged);
+    cannyPointsDensity.addListener(this, &ofApp::cannyPointsDensityChanged);
     cannyThreshold1.addListener(this, &ofApp::cannyThreshold1Changed);
     cannyThreshold2.addListener(this, &ofApp::cannyThreshold2Changed);
     // - video grabber
@@ -219,7 +220,10 @@ void ofApp::setup(){
     panel.add(clearAllPoints.setup("clearAllPoints"));
     panel.add(addRandomPoints.setup("addRandomPoints"));
     // -- canny
+    panel.add(addCannyPointsStyleLabel.setup("addCannyPointsStyle", ofToString(addCannyPointsStyle)));
     panel.add(addCannyPoints.setup("addCannyPoints"));
+    addCannyPointsStyle = 0;
+    panel.add(cannyPointsDensity.set("cannyPointsDensity", 5, 1, 128));;
     panel.add(cannyThreshold1.set("cannyThreshold1", 0, 0, 256));
     panel.add(cannyThreshold2.set("cannyThreshold1", 30, 0, 256));
     // - select dawing style
@@ -260,18 +264,54 @@ void ofApp::addCannyPointsChanged(){
     
     ofPixels edgePixels = edgeImage.getPixels();
     unsigned char *edgeData = edgePixels.getData();
-    int const step = 5;
     float width = enableVideoGrabber ? videoGrabber.getWidth() : image.getWidth();
     float height = enableVideoGrabber ?  videoGrabber.getHeight() : image.getHeight();
     // add points on the edge
-    for (int i = 0; i < (int)edgePixels.size(); i += step) {
-        if (edgeData[i] != 0) {
-            // this pixel is on the edge
-            ofPoint edgePoint(i%(int)width, floor(i/width));
-            
-            // delaunay
-            triangulation.addPoint(edgePoint);
+    switch (addCannyPointsStyle) {
+        case 0: // simple and dynamic style(skip cannyPointsDensity on only x axis not on y axis)
+            for (int i = 0; i < (int)edgePixels.size(); i += cannyPointsDensity) {
+                if (edgeData[i] != 0) {
+                    // this pixel is on the edge
+                    ofPoint edgePoint(i%(int)width, floor(i/width));
+                    
+                    // delaunay
+                    triangulation.addPoint(edgePoint);
+                }
+            }
+            break;
+        case 1: // grid style(skip cannyPointsDensity on both of x and y axis)
+            for (int y = 0; y < (int)height; y += cannyPointsDensity) {
+                for (int x = 0; x < (int)width; x += cannyPointsDensity) {
+                    int index = y*width + x;
+                    if (edgeData[index] != 0) {
+                        // this pixel is on the edge
+                        ofPoint edgePoint(index%(int)width, floor(index/width));
+                        
+                        // delaunay
+                        triangulation.addPoint(edgePoint);
+                    }
+                }
+            }
+            break;
+        case 2: // random style
+        {
+            int edgeDataIndex[(int)edgePixels.size()];
+            for (int i = 0; i < (int)edgePixels.size(); i++) {edgeDataIndex[i] = i;}
+            random_shuffle(edgeDataIndex, edgeDataIndex+(int)edgePixels.size());
+            for (int i = 0; i < (int)edgePixels.size(); i += cannyPointsDensity) {
+                if (edgeData[edgeDataIndex[i]] != 0) {
+                    // this pixel is on the edge
+                    ofPoint edgePoint(edgeDataIndex[i] %(int)width, floor(edgeDataIndex[i]/width));
+                    
+                    // delaunay
+                    triangulation.addPoint(edgePoint);
+                }
+            }
         }
+            break;
+        default:
+            cout << "something wrong" << endl;
+            break;
     }
     // add corner points
     triangulation.addPoint(ofPoint(0, 0));
@@ -280,6 +320,13 @@ void ofApp::addCannyPointsChanged(){
     triangulation.addPoint(ofPoint(width, 0));
     
     updateTriangles();
+}
+
+void ofApp::cannyPointsDensityChanged(int &cannyPointsDensity){
+    if(enableImage) {
+        clearAllPointsChanged();
+        addCannyPointsChanged();
+    }
 }
 
 void ofApp::cannyThreshold1Changed(float &threshold1){
@@ -519,6 +566,18 @@ void ofApp::draw(){
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
     switch (key) {
+        case '0':
+            addCannyPointsStyle = 0;
+            addCannyPointsStyleLabel = ofToString(0)+"(simple)";
+            break;
+        case '1':
+            addCannyPointsStyle = 1;
+            addCannyPointsStyleLabel = ofToString(1)+"(grid)";
+            break;
+        case '2':
+            addCannyPointsStyle = 2;
+            addCannyPointsStyleLabel = ofToString(2)+"(random)";
+            break;
         case 'f':
             ofToggleFullscreen();
             break;
